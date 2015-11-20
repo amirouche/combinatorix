@@ -19,6 +19,7 @@ from combinatorix import combinatorix
 # parser
 from combinatorix import char
 from combinatorix import string
+from combinatorix import tweet
 
 
 class TestCombinatorix(TestCase):
@@ -169,3 +170,30 @@ class TestCombinatorix(TestCase):
         out, stream = parser(stream)
         self.assertEqual(out, 'c')
         self.assertEqual(stream.position, 1)
+
+
+class TestTweetParser(TestCase):
+
+    def test_tweet_simple(self):
+        input = 'Ombi Natori combine combinators using combinatorix'
+        output = tweet(input)
+        self.assertEqual(input, output)
+
+    def test_tweet_hashtag(self):
+        input = 'Ombi Natori combine combinators using combinatorix #Python'
+        output = tweet(input)
+        hashtag = '<a href="#Python">#Python</a>'
+        expected = 'Ombi Natori combine combinators using combinatorix %s'
+        expected = expected % hashtag
+        self.assertEqual(output, expected)
+
+    def test_tweet_link(self):
+        input = 'Ombi Natori combine combinators using combinatorix #Python'
+        input += ' Get it at https://github.com/amirouche/combinatorix'
+        output = tweet(input)
+        hashtag = '<a href="#Python">#Python</a>'
+        expected = 'Ombi Natori combine combinators using combinatorix %s'
+        expected = expected % hashtag
+        url = 'https://github.com/amirouche/combinatorix'
+        expected += ' Get it at <a href="%s">%s</a>' % (url, url)
+        self.assertEqual(output, expected)

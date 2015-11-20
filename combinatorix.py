@@ -142,6 +142,18 @@ def nop(stream):
     return '', stream.next()
 
 
+def anything(stream):
+    return stream.peek(), stream.next()
+
+
+def space(stream):
+    char = stream.peek()
+    if char.isspace():
+        return char, stream.next()
+    else:
+        raise ParseFailure(stream)
+
+
 def end_of_stream(stream):
     """Parser that succeed if the stream is fully consumed"""
     try:
@@ -180,3 +192,40 @@ def combinatorix(string, parser):
         raise ParseFailure(stream)
     else:
         return out
+
+
+# tweet parser
+
+def join(parser):
+    def closure(stream):
+        out, stream = parser(stream)
+        return ''.join(out), stream
+    return closure
+
+nonspace = one_or_more(unless(space, anything))
+nonspace = join(nonspace)
+
+
+def href(parser):
+    def closure(stream):
+        out, stream = parser(stream)
+        out = '<a href="%s">%s</a>' % (out, out)
+        return out, stream
+    return closure
+
+
+url = sequence(either(string('http://'), string('https://')), nonspace)
+url = href(join(url))
+
+
+hashtag = sequence(char('#'), nonspace)
+hashtag = href(join(hashtag))
+
+fragment = either(url, hashtag, nonspace, space)
+
+tweet_parser = one_or_more(fragment)
+tweet_parser = join(tweet_parser)
+
+
+def tweet(string):
+    return combinatorix(string, tweet_parser)
