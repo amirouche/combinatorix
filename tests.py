@@ -189,11 +189,11 @@ class TestTweetParser(TestCase):
 
     def test_tweet_link(self):
         input = 'Ombi Natori combine combinators using combinatorix #Python'
-        input += ' Get it at https://github.com/amirouche/combinatorix'
+        input += ' Get it at https://github.com/amirouche/combinatorix#combinatorix'
         output = tweet(input)
         hashtag = '<a href="#Python">#Python</a>'
         expected = 'Ombi Natori combine combinators using combinatorix %s'
         expected = expected % hashtag
-        url = 'https://github.com/amirouche/combinatorix'
+        url = 'https://github.com/amirouche/combinatorix#combinatorix'
         expected += ' Get it at <a href="%s">%s</a>' % (url, url)
         self.assertEqual(output, expected)
