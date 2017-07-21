@@ -173,6 +173,15 @@ def char(char):
             raise ParseFailure(stream)
     return parser
 
+def apply(func):
+    """Apply ``func`` on the output of ``parser``"""
+    def parser(parser):
+        def closure(stream):  # functor factory ftw!
+            out, stream = parser(stream)
+            return func(out), stream
+        return closure
+    return parser
+
 
 def string(string):
     def parser(stream):
@@ -196,11 +205,7 @@ def combinatorix(string, parser):
 
 # tweet parser
 
-def join(parser):
-    def closure(stream):
-        out, stream = parser(stream)
-        return ''.join(out), stream
-    return closure
+join = apply(lambda x: ''.join(x))
 
 nonspace = one_or_more(unless(space, anything))
 nonspace = join(nonspace)
