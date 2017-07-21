@@ -18,8 +18,13 @@ from combinatorix import combinatorix
 
 # parser
 from combinatorix import char
+from combinatorix import anything
 from combinatorix import string
 from combinatorix import tweet
+
+# ufo
+from combinatorix import apply
+from combinatorix import join
 
 
 class TestCombinatorix(TestCase):
@@ -197,3 +202,30 @@ class TestTweetParser(TestCase):
         url = 'https://github.com/amirouche/combinatorix#combinatorix'
         expected += ' Get it at <a href="%s">%s</a>' % (url, url)
         self.assertEqual(output, expected)
+
+
+strip = apply(lambda x: x.strip())
+
+equal = char('=')
+
+key = strip(join(one_or_more(unless(equal, anything))))
+
+eol = char('\n')
+
+return_empty_space = apply(lambda x: '')
+continuation = return_empty_space(sequence(string('\\\n'), zero_or_more(char(' '))))
+
+value = strip(join(one_or_more(unless(eol, either(continuation, anything)))))
+
+kv_apply = apply(lambda x: (x[0], x[2]))
+kv = kv_apply(sequence(key, equal, value))
+
+parser = lambda string: combinatorix(string, kv)
+
+        
+class TestConfigFileParser(TestCase):
+
+    def test_continuation(self):
+        input = 'a = b\\e,\\\n    c,\\\n    d'
+        expected = ('a', 'b\\e,c,d')
+        self.assertEqual(parser(input), expected)
